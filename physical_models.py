@@ -35,3 +35,17 @@ def pendulum_right_hand(t, x, l=15, g=9.8):
 
 def simulate_pendulum(t0, x0, t, dt = 0.1):
     return integrate_rk4(pendulum_right_hand, t0, x0, t, dt)
+
+
+def SIR_right_hand(t, x, b=0.5, g=0.1, k=6):
+    """ ODE for a simple SIR model
+        https://en.wikipedia.org/wiki/Compartmental_models_in_epidemiology#The_SIR_model_is_dynamic_in_three_senses
+    """
+    S, I, R = x[0], x[1], x[2]
+    return k*np.array([-b*I*S,
+                        b*I*S - g*I,
+                        g*I])
+
+
+def simulate_epidemiology(t0, x0, t, dt = 0.1):
+    return integrate_rk4(SIR_right_hand, t0, x0, t, dt)
