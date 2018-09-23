@@ -41,9 +41,7 @@ def plot(title, train, test1, test2, pred, pred1, pred2):
     for ax in plt.gcf().get_axes():
         ax.grid() 
 
-
-    plt.show()
-    return 0
+    return
 
 
 def main():
@@ -60,22 +58,34 @@ def main():
     
     N = 5 # size of the history window (for LSTM)
 
-    # # train lstm model
-    model_lstm = models.train_lstm(train, N)
-    model_lstm.save('models/pendulum_lstm')
-    # # or load pre-built one
-    # model_lstm = load_model('models/pendulum_lstm')
+    # train lstm model
+    # model_lstm = models.train_lstm(train, N)
+    # model_lstm.save('bin_models/pendulum_lstm')
+    # or load pre-built one
+    model_lstm = load_model('bin_models/pendulum_lstm')
 
-    # use lstm for prediction with training initial angle = pi/6
-    pred = models.predict(model_lstm, train[:N], step_count=int(T/dt-N), N=N)
-    # use lstm for prediction with initial angle = pi/4
-    pred1 = models.predict(model_lstm, test1[:N], step_count=int(T/dt-N), N=N)
-    # use lstm for prediction with initial angle = 0
-    pred2 = models.predict(model_lstm, test2[:N], step_count=int(T/dt-N), N=N)
 
-    plot("LSTM: non-physical predictions, training data are memorized", train, test1, test2, pred, pred1, pred2)
+    # train linear model
+    # model_linear = models.train_linear(train, N)
+    # model_linear.save('bin_models/pendulum_linear')
+    # or load pre-built one
+    model_linear = load_model('bin_models/pendulum_linear')
     
+    
+    for model, n, title in zip([model_lstm, model_linear],
+                               [N, 1],
+                               ["LSTM: non-physical predictions, training data are memorized",
+                                "Linear map: physical behaviour generalization"]):
+        # use model for prediction with training initial angle = pi/6
+        pred = models.predict(model, train[:n], step_count=int(T/dt-n), N=n)
+        # use model for prediction with initial angle = pi/4
+        pred1 = models.predict(model, test1[:n], step_count=int(T/dt-n), N=n)
+        # use lstm for prediction with initial angle = 0
+        pred2 = models.predict(model, test2[:n], step_count=int(T/dt-n), N=n)
 
+        plot(title, train, test1, test2, pred, pred1, pred2)
+    
+    plt.show()
     return 0
 
 if __name__ == '__main__':

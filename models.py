@@ -14,6 +14,21 @@ def create_lstm_model(x, N, outputs=1):
         return m
 
 
+def linear_layer(input_var, output_dim):
+    input_dim = input_var.shape[0]
+
+    weight = C.parameter(shape=(input_dim, output_dim))
+    bias = C.parameter(shape=(output_dim))
+    # return bias + C.times(input_var, weight)
+    return C.times(input_var, weight)
+
+
+def create_linear_model(x, N, outputs=1):
+    """Create the model for time series prediction (N is ignored)"""
+    with C.layers.default_options(initial_state = 0.1):
+        return linear_layer(x, outputs)
+
+
 def next_batch(x, y, batch_size):
     """get the next batch to process"""
 
@@ -48,16 +63,21 @@ def rolling_window(states, N):
 
 def train_lstm(states, N=5, epochs = 500, batch_size = 10):
     X,Y = rolling_window(states, N)
-    return train(create_lstm_model, X, Y, N, epochs, batch_size)
+    return train(create_lstm_model, X, Y, epochs, batch_size, N=N)
 
 
-def train(create_model, X, Y, N=5, epochs = 500, batch_size = 10):
+def train_linear(states, N=5, epochs = 500, batch_size = 10):
+    X, Y = states[:-2], states[1:]
+    return train(create_linear_model, X, Y, epochs, batch_size)
+
+
+def train(create_model, X, Y, epochs = 500, batch_size = 10, N=1):
     dim = Y.shape[1]
     
     # input sequences
     x = C.sequence.input_variable(dim)
     # create the model
-    z = create_model(x, N=dim, outputs=dim)
+    z = create_model(x, N=N, outputs=dim)
 
     # expected output (label), also the dynamic axes of the model output
     # is specified as the model of the label input
